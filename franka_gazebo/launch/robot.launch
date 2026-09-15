@@ -8,6 +8,16 @@
   <arg name="world"       default="worlds/empty.world" doc="Filename to a SDF World for gazebo to use" />
   <arg name="rviz"        default="false" doc="Should RVIz be launched?" />
 
+  <!-- gazebo_ros/spawn_model's own -gazebo_namespace default is the hardcoded literal
+       string '/gazebo', not something that follows this file's node into an outer
+       <group ns="..."> the way a plain relative node name does. So if this whole file
+       (and the 'gazebo' node below, from empty_world.launch) is included inside e.g.
+       <group ns="panda">, gzserver's spawn/pause services end up at /panda/gazebo/... but
+       spawn_model still looks for them at the unnamespaced /gazebo/... and hangs/fails to
+       spawn anything. Callers that wrap this file in an outer ns group must override this
+       to match (e.g. value="/panda/gazebo"); left at the plain default for standalone use. -->
+  <arg name="gazebo_namespace" default="/gazebo" doc="Must match the namespace the 'gazebo' node (started below via empty_world.launch) actually ends up in" />
+
   <!-- Robot Customization -->
   <arg name="robot"                       doc="Which robot to spawn (one of {panda,fr3})" />
   <arg name="arm_id"      default="$(arg robot)" doc="Name of the robot to spawn" />
@@ -20,6 +30,15 @@
   <arg name="pitch"       default="0"     doc="How much to rotate the base of the robot around its Y-axis in [rad]?" />
   <arg name="yaw"         default="0"     doc="How much to rotate the base of the robot around its Z-axis in [rad]?" />
   <arg name="xacro_args"  default=""      doc="Additional arguments to pass to panda.urdf.xacro" />
+  <!-- Separate top-level args rather than folding into xacro_args: roslaunch resolves CLI
+       arg:=value overrides via rosgraph.names.load_mappings(), which naively does
+       arg.split(':=') with no limit, so a value that itself contains ':=' (e.g.
+       xacro_args:="finger_extension_m:=0.02") produces more than 2 pieces, the src,dst
+       unpack throws, and roslaunch silently drops that whole override (only printing
+       "Invalid remapping argument") while continuing with the default. So these must be
+       passed as their own flat CLI args, not nested inside xacro_args. -->
+  <arg name="finger_extension_m" default="0.09" doc="Finger collision-box length in [m]; forwarded to franka_hand.xacro" />
+  <arg name="tcp_xyz"     default="0 0 0.1934" doc="hand_tcp frame origin xyz in [m]; forwarded to franka_hand.xacro" />
   <arg name="initial_joint_positions"
        doc="Initial joint configuration of the panda. Specify as a list of name/value pairs in form of '-J [name-of-joint] [value-in-rad]'. Default is a 90 degree bend in the elbow"
        default="-J $(arg arm_id)_joint1 0
@@ -49,6 +68,8 @@
                   arm_id:=$(arg arm_id)
                   xyz:='$(arg x) $(arg y) $(arg z)'
                   rpy:='$(arg roll) $(arg pitch) $(arg yaw)'
+                  finger_extension_m:=$(arg finger_extension_m)
+                  tcp_xyz:='$(arg tcp_xyz)'
                   $(arg xacro_args)">
   </param>
 
@@ -62,6 +83,7 @@
         pkg="gazebo_ros"
         type="spawn_model"
         args="-param robot_description -urdf -model $(arg arm_id) $(arg unpause)
+              -gazebo_namespace $(arg gazebo_namespace)
               $(arg initial_joint_positions)
               "/>
 

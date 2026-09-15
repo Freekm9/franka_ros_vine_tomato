@@ -4,10 +4,16 @@
     <!-- Name of this panda -->
     <!-- Should a franka_gripper be mounted at the flange?" -->
     <xacro:arg name="hand" default="false" />
-    <!-- Positional offset between $(arm_id)_hand -> $(arm_id)_hand_tcp [m]. Only used when hand:=true -->
-    <xacro:arg name="tcp_xyz" default="0 0 0.1034" />
+    <!-- Positional offset between $(arm_id)_hand -> $(arm_id)_hand_tcp [m]. Only used when hand:=true.
+         z should track finger_extension_m below: 0.1034 (stock fingertip, no extension) + finger_extension_m. -->
+    <xacro:arg name="tcp_xyz" default="0 0 0.1934" />
     <!-- Rotational offset between $(arm_id)_hand -> $(arm_id)_hand_tcp [rad]. Only used when hand:=true -->
     <xacro:arg name="tcp_rpy" default="0 0 0" />
+    <!-- Length of the custom finger-extension collision box [m]. Only used when hand:=true.
+         Default 0.09 matches this project's original hardcoded 9cm extension; override together
+         with tcp_xyz (see above) to test other finger lengths without editing this file, e.g. for
+         a 6cm extension: finger_extension_m:=0.06 tcp_xyz:="0 0 0.1634" -->
+    <xacro:arg name="finger_extension_m" default="0.09" />
     <!-- Is the robot being simulated in gazebo?" -->
     <xacro:arg name="gazebo" default="false" />
 
@@ -32,6 +38,7 @@
           connected_to="$(arg arm_id)_link8"
           safety_distance="0.03"
           gazebo="$(arg gazebo)"
+          finger_extension_m="$(arg finger_extension_m)"
        />
     </xacro:if>
 

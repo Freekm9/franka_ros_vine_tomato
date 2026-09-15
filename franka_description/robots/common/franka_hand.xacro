@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="hand">
   <!-- safety_distance: Minimum safety distance in [m] by which the collision volumes are expanded and which is enforced during robot motions -->
-  <xacro:macro name="franka_hand" params="connected_to:='' arm_id:='panda' rpy:='0 0 0' xyz:='0 0 0' tcp_xyz:='0 0 0.1034' tcp_rpy:='0 0 0' safety_distance:=0 gazebo:=false description_pkg:=franka_description">
+  <xacro:macro name="franka_hand" params="connected_to:='' arm_id:='panda' rpy:='0 0 0' xyz:='0 0 0' tcp_xyz:='0 0 0.1934' tcp_rpy:='0 0 0' safety_distance:=0 gazebo:=false description_pkg:=franka_description finger_extension_m:=0.09">
     <xacro:unless value="${connected_to == ''}">
       <joint name="${arm_id}_hand_joint" type="fixed">
         <parent link="${connected_to}" />
@@ -58,6 +58,17 @@
           <box size="17.5e-3 15.2e-3 18.5e-3" />
         </geometry>
       </collision>
+      <!-- Finger extension: length is parametrized (finger_extension_m, default 0.09 to
+           match the original hardcoded 9cm piece this replaces); anchored so its proximal
+           end stays flush against the rubber tip block above (which ends at z=54.5e-3)
+           regardless of length, and its distal end tracks tcp_xyz's z (see franka_robot.xacro:
+           tcp_z = 0.1034 [stock fingertip] + finger_extension_m). -->
+      <collision>
+        <origin xyz="0 7.58e-3 ${54.5e-3 + finger_extension_m/2}" rpy="0 0 0" />
+        <geometry>
+          <box size="17.5e-3 15.2e-3 ${finger_extension_m}" />
+        </geometry>
+      </collision>
       <xacro:if value="${gazebo}">
         <xacro:inertial_props name="leftfinger" />
       </xacro:if>
@@ -95,6 +106,13 @@
         <origin xyz="0 -7.58e-3 45.25e-3" rpy="0 0 0" />
         <geometry>
           <box size="17.5e-3 15.2e-3 18.5e-3" />
+        </geometry>
+      </collision>
+      <!-- Finger extension: see leftfinger's matching block above for the parametrization. -->
+      <collision>
+        <origin xyz="0 -7.58e-3 ${54.5e-3 + finger_extension_m/2}" rpy="0 0 0" />
+        <geometry>
+          <box size="17.5e-3 15.2e-3 ${finger_extension_m}" />
         </geometry>
       </collision>
       <xacro:if value="${gazebo}">

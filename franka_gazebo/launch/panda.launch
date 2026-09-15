@@ -7,6 +7,10 @@
   <arg name="world"       default="worlds/empty.world" doc="Filename to a SDF World for gazebo to use" />
   <arg name="rviz"        default="false" doc="Should RVIz be launched?" />
 
+  <!-- See robot.launch: must match the namespace the 'gazebo' node ends up in if this
+       whole file is included inside an outer <group ns="...">. -->
+  <arg name="gazebo_namespace" default="/gazebo" />
+
   <!-- Robot Customization -->
   <arg name="arm_id"      default="panda" doc="Name of the robot to spawn" />
   <arg name="use_gripper" default="true"  doc="Should a franka hand be mounted on the flange?" />
@@ -18,6 +22,11 @@
   <arg name="pitch"       default="0"     doc="How much to rotate the base of the robot around its Y-axis in [rad]?" />
   <arg name="yaw"         default="0"     doc="How much to rotate the base of the robot around its Z-axis in [rad]?" />
   <arg name="xacro_args"  default=""      doc="Additional arguments to pass to panda.urdf.xacro" />
+  <!-- Kept separate from xacro_args: see robot.launch for why a value containing ':='
+       (like a nested xacro key:=value pair) can't survive as part of a combined
+       xacro_args CLI override. -->
+  <arg name="finger_extension_m" default="0.09" doc="Finger collision-box length in [m]; forwarded to franka_hand.xacro" />
+  <arg name="tcp_xyz"     default="0 0 0.1934" doc="hand_tcp frame origin xyz in [m]; forwarded to franka_hand.xacro" />
   <arg name="initial_joint_positions"
        doc="Initial joint configuration of the panda. Specify as a list of name/value pairs in form of '-J [name-of-joint] [value-in-rad]'. Default is a 90 degree bend in the elbow"
        default="-J $(arg arm_id)_joint1 0
@@ -38,6 +47,7 @@
     <arg name="paused" value="$(arg paused)" />
     <arg name="world" value="$(arg world)" />
     <arg name="rviz" value="$(arg rviz)" />
+    <arg name="gazebo_namespace" value="$(arg gazebo_namespace)" />
 
     <arg name="robot" value="panda" />
     <arg name="arm_id" value="$(arg arm_id)" />
@@ -51,6 +61,8 @@
     <arg name="yaw" value="$(arg yaw)" />
 
     <arg name="xacro_args" value="$(arg xacro_args)" />
+    <arg name="finger_extension_m" value="$(arg finger_extension_m)" />
+    <arg name="tcp_xyz" value="$(arg tcp_xyz)" />
     <arg name="initial_joint_positions" value="$(arg initial_joint_positions)" />
     <arg name="interactive_marker" value="$(arg interactive_marker)" />
 
