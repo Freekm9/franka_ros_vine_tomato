@@ -1,0 +1,4 @@
+[submodule "franka_human_friendly_controllers"]
+	path = franka_human_friendly_controllers
+	url = https://github.com/franzesegiovanni/franka_human_friendly_controllers.git
+	branch = master
